@@ -29,4 +29,4 @@ rows = run_query("select cast(a as FLOAT64) as lat, cast(b as FLOAT64) as lon, e
 st.write("Some wise words from Shakespeare:")
 
 for row in rows:
-    st.write("✍️ " + row['time_value'])
+    st.write(row['time_value'])
