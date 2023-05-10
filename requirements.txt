@@ -1,3 +1,4 @@
 streamlit
 google-cloud-bigquery
 google-cloud-bigquery[pandas]==2.34.3
+pydeck
