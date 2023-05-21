@@ -4,6 +4,7 @@ import streamlit as st
 import numpy as np
 import pydeck as pdk
 import pandas as pd
+import geopy.distance
 from google.oauth2 import service_account
 from google.cloud import bigquery
 
@@ -101,6 +102,21 @@ print(df_new.head())
 
 
 
+coor_list = df_new.iloc[0]['path']
+
+coor_distance = 0.0
+i = 0
+j = 1
+while j < coor_length:
+  coor_distance += geopy.distance.geodesic(coor_list[i], coor_list[j]).km
+  #print(coor_list[i])
+  #print(coor_list[j])
+  #print(coor_distance)
+  i += 1
+  j += 1
+
+print(coor_distance)
+
 #rows = run_query("select cast(a as FLOAT64) as lat, cast(b as FLOAT64) as lon, extract(time from TIMESTAMP_SECONDS(cast(c as INT64))) as time_value from `iot_dataset.07_05` limit 10")
 
 #for row in rows:
@@ -132,8 +148,11 @@ midpoint = mpoint(df["lat"], df["lon"]) # the map will be centered on the midpoi
 
 with row2_1:
     if member:
-        st.write("You entered: ", member)
+        st.write("Previous rowing of ", member)
         map(df_new, midpoint[0], midpoint[1], 13)
-
+        
+with row2_1:
+    if member:
+        st.write("Distance", coor_distance)
 #zoom_level = 12 # the map will be zoomed in to show the airport in detail
 #midpoint = mpoint(data["lat"], data["lon"]) # the map will be centered on the midpoint of all the data points
