@@ -115,7 +115,12 @@ while j < coor_length:
   i += 1
   j += 1
 
+coor_distance = round(coor_distance, 2)
 print(coor_distance)
+
+
+df_date = run_query_df("select ride_date from `iot_dataset.rides` where member_name_ = 'Shanshan' order by ride_date limit 1")
+ride_date = df_date.loc['0', 'ride_date']
 
 #rows = run_query("select cast(a as FLOAT64) as lat, cast(b as FLOAT64) as lon, extract(time from TIMESTAMP_SECONDS(cast(c as INT64))) as time_value from `iot_dataset.07_05` limit 10")
 
@@ -155,7 +160,7 @@ with row2_2:
     if member:
         col1, col2, col3 = st.columns(3)
         col1.metric("Your distance", coor_distance)
-        col2.metric("Wind", "9 mph", "-8%")
+        col2.metric("Ride date", ride_date)
         col3.metric("Humidity", "86%", "4%")
 #zoom_level = 12 # the map will be zoomed in to show the airport in detail
 #midpoint = mpoint(data["lat"], data["lon"]) # the map will be centered on the midpoint of all the data points
