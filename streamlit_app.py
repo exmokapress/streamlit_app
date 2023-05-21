@@ -151,8 +151,11 @@ with row2_1:
         st.write("Previous rowing of ", member)
         map(df_new, midpoint[0], midpoint[1], 13)
         
-with row2_1:
+with row2_2:
     if member:
-        st.write("Distance", coor_distance)
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Your distance", coor_distance)
+        col2.metric("Wind", "9 mph", "-8%")
+        col3.metric("Humidity", "86%", "4%")
 #zoom_level = 12 # the map will be zoomed in to show the airport in detail
 #midpoint = mpoint(data["lat"], data["lon"]) # the map will be centered on the midpoint of all the data points
