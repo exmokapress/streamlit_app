@@ -120,7 +120,7 @@ print(coor_distance)
 
 
 df_date = run_query_df("select ride_date from `iot_dataset.rides` where member_name_ = 'Shanshan' order by ride_date limit 1")
-ride_date = df_date.loc['0', 'ride_date']
+ride_date = df_date.iloc[0], ['ride_date']
 
 #rows = run_query("select cast(a as FLOAT64) as lat, cast(b as FLOAT64) as lon, extract(time from TIMESTAMP_SECONDS(cast(c as INT64))) as time_value from `iot_dataset.07_05` limit 10")
 
