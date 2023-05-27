@@ -119,8 +119,19 @@ coor_distance = round(coor_distance, 2)
 print(coor_distance)
 
 
-df_date = run_query_df("select ride_date from `iot_dataset.rides` where member_name_ = 'Shanshan' order by ride_date limit 1")
-ride_date = df_date.iloc[0], ['ride_date']
+#df_date = run_query_df("select ride_date from `iot_dataset.rides` where member_name_ = 'Shanshan' order by ride_date limit 1")
+q1 = """
+bq query 
+--use_legacy_sql=false 
+--parameter=name:STRING:Shanshan 
+select ride_date
+from %s.iot_dataset.rides
+where member_name_ = name 
+order by ride_date desc limit 1
+"""
+
+df_date = run_query_df(q1)
+ride_date = df_date.iloc[0,0]
 
 #rows = run_query("select cast(a as FLOAT64) as lat, cast(b as FLOAT64) as lon, extract(time from TIMESTAMP_SECONDS(cast(c as INT64))) as time_value from `iot_dataset.07_05` limit 10")
 
