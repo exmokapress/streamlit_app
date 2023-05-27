@@ -125,7 +125,7 @@ bq query
 --use_legacy_sql=false 
 --parameter=name:STRING:Shanshan 
 select ride_date
-from %s.iot_dataset.rides
+from `iot_dataset.rides`
 where member_name_ = name 
 order by ride_date desc limit 1
 """
