@@ -4,6 +4,7 @@ import streamlit as st
 import numpy as np
 import pydeck as pdk
 import pandas as pd
+import datetime
 import geopy.distance
 from google.oauth2 import service_account
 from google.cloud import bigquery
@@ -37,7 +38,13 @@ gps_rides_table = client.get_table(table_ref)
 df_gps_rides = client.list_rows(gps_rides_table).to_dataframe()
 
 
-st.set_page_config(layout="wide", page_title="SCL rowing log demo", page_icon=":boat:")
+tmp_2 = df_rides.loc[df_rides['member_name_']=='Shanshan', ['ride_date']]
+print(tmp_2.iloc[0,0])
+print(type(tmp_2.iloc[0,0]))
+
+
+st.set_page_config(layout="wide", page_title="Seeclub Luzern Logbuch", page_icon=":boat:")
+st.title("Seeclub Luzern Logbuch") # Title of the app
 
 # Perform query.
 # Uses st.cache_data to only rerun when the query changes or after 10 min.
@@ -81,6 +88,7 @@ def map(data, lat, lon, zoom):
     ----
     :return: a PyDeck map as a Streamlit component
     """
+    print(data.head())
     st.write(
         pdk.Deck(
             map_style="mapbox://styles/mapbox/light-v9",
@@ -115,84 +123,103 @@ def map(data, lat, lon, zoom):
 
 
 def get_ride_member():
-    df_rides[df_rides.member_name_=='Shanshan'].ride_date.sort_values(ascending=False)
-    print(df_rides.ride_date[0])
-    return df_gps_rides[df_gps_rides.date_value==df_rides.ride_date[0]].sort_values(by='time_value')
-
+    tmp_2 = df_rides.loc[df_rides['member_name_']=='Shanshan', ['ride_date']].sort_values(by='ride_date', ascending=False)
+    print(tmp_2.iloc[0,0])
+    print(type(tmp_2.iloc[0,0]))
+    #ride_date = datetime.date(df_rides.loc[df_rides.member_name_=='Shanshan', 'ride_date'].sort_values(ascending=False).head(1))
+    #print(ride_date)
+    return df_gps_rides[df_gps_rides.date_value==tmp_2.iloc[0,0]].sort_values(by='time_value')
+    #return df_gps_rides[df_gps_rides.date_value==datetime.date(2023, 5, 28)].sort_values(by='time_value')
+ 
 def get_map_ride(df):
-    print(df.head())
+    #print(df.head())
     df_list = []
     for index, row in df.iterrows():
         df_list.append([row["lon"], row["lat"]])
 
     df_new = pd.DataFrame(columns=['path'])
     df_new.at['0', 'path'] = df_list  
-    print(df_new.head())
-    
+    #print(df_new.head())
     return df_new
 
 
+def cal_distance(df):
+    df_list = []
+    for index, row in df.iterrows():
+        df_list.append([row["lon"], row["lat"]])
+    
+    coor_length = len(df_list)
+    coor_list = df_new.iloc[0]['path']
+
+    coor_distance = 0.0
+    i = 0
+    j = 1
+    while j < coor_length:
+        coor_distance += geopy.distance.geodesic(coor_list[i], coor_list[j]).km
+        #print(coor_list[i])
+        #print(coor_list[j])
+        #print(coor_distance)
+        i += 1
+        j += 1
+
+    coor_distance = round(coor_distance, 2)
+    print(coor_distance)
+    return coor_distance
+
 
 """
-coor_length = len(df_list)
 
-coor_list = df_new.iloc[0]['path']
-
-coor_distance = 0.0
-i = 0
-j = 1
-while j < coor_length:
-  coor_distance += geopy.distance.geodesic(coor_list[i], coor_list[j]).km
-  #print(coor_list[i])
-  #print(coor_list[j])
-  #print(coor_distance)
-  i += 1
-  j += 1
-
-coor_distance = round(coor_distance, 2)
-print(coor_distance)
 """
 
 #df_date = run_query_df("select ride_date from `iot_dataset.rides` where member_name_ = 'Shanshan' order by ride_date limit 1")
 #ride_date = df_date.iloc[0,0]
 
+tab1, tab2, tab3 = st.tabs(["Live view", "Member view", "Boat view"])
 
-# LAYING OUT THE TOP SECTION OF THE APP WITH 2 COLUMNS
-row1_1, row1_2 = st.columns((2, 1)) # Size of columns 2, 3 means 2/5 and 3/5 of the screen
-
-with row1_1:
-    st.title("Seeclub Luzern Logbuch") # Title of the app
-    #hour_selected = st.slider("Select hour of pickup", 0, 23) # Slider to select hour of pickup
-    member = st.text_input('Enter the name of the member 👇')
-    #st.write('The current movie title is', member)
-
-with row1_2:
-    # Just a text to explain the app
-    st.write("something")
-
-# LAYING OUT THE MIDDLE SECTION OF THE APP WITH THE MAPS
-row2_1, row2_2 = st.columns((2, 1)) # Size of columns 2, 1, 1, 1 
+with tab1:
+   st.header("Member view")
+   row1_1, row1_2 = st.columns((3, 1)) # Size of columns 2, 1, 1, 1 
+    
+   with row1_1:
+        member = st.text_input('Enter the name of the member 👇')
+   
+   
+   # LAYING OUT THE MIDDLE SECTION OF THE APP WITH THE MAPS
+   row2_1, row2_2 = st.columns((3, 1)) # Size of columns 2, 1, 1, 1 
 
 
-#df_query = run_query_df("select cast(a as FLOAT64) as lat, cast(b as FLOAT64) as lon, extract(time from TIMESTAMP_SECONDS(cast(c as INT64))) as time_value from `iot_dataset.07_05`")
-#midpoint = mpoint(df["lat"], df["lon"]) # the map will be centered on the midpoint of all the data points
-#map(df, midpoint[0], midpoint[1], 11)
-#for column in df_query:
-#    st.write(df_query[column])
+    #df_query = run_query_df("select cast(a as FLOAT64) as lat, cast(b as FLOAT64) as lon, extract(time from TIMESTAMP_SECONDS(cast(c as INT64))) as time_value from `iot_dataset.07_05`")
+    #midpoint = mpoint(df["lat"], df["lon"]) # the map will be centered on the midpoint of all the data points
+    #map(df, midpoint[0], midpoint[1], 11)
+    #for column in df_query:
+    #    st.write(df_query[column])
+   
+   if member:
+        with row2_1:
+                #st.write("Previous rowing of ", member)
+                df_ride_member = get_ride_member()
+                #print(df_ride_member.head())
+                midpoint = mpoint(df_ride_member["lat"], df_ride_member["lon"])
+                df_new = get_map_ride(df_ride_member)
+                #print(df_new.head())
+                map(df_new, midpoint[0], midpoint[1], 12)
+                coor_distance = cal_distance(df_ride_member)
 
-with row2_1:
-    if member:
-        st.write("Previous rowing of ", member)
-        df_ride_member = get_ride_member()
-        df_new = get_map_ride(df_ride_member)
-        midpoint = mpoint(df_ride_member["lat"], df_ride_member["lon"])
-        map(df_new, midpoint[0], midpoint[1], 13)
-        
-with row2_2:
-    if member:
-        col1, col2, col3 = st.columns(3)
-        #col1.metric("Your distance", coor_distance)
-        #col2.metric("Ride date", ride_date)
-        #col3.metric("Humidity", "86%", "4%")
-#zoom_level = 12 # the map will be zoomed in to show the airport in detail
-#midpoint = mpoint(data["lat"], data["lon"]) # the map will be centered on the midpoint of all the data points
+                    
+        with row2_2:
+                col1, col2 = st.columns([1, 4])
+                col2.metric(label="Temperature", value="70 °F")
+                col2.metric(label="Temperature", value="70 °F")
+                col2.metric(label="Temperature", value="70 °F")
+                col2.metric(label="Temperature", value="70 °F")
+
+
+with tab2:
+   st.header("A dog")
+   st.image("https://static.streamlit.io/examples/dog.jpg", width=200)
+
+with tab3:
+   st.header("An owl")
+   st.image("https://static.streamlit.io/examples/owl.jpg", width=200)
+
+
