@@ -44,7 +44,7 @@ print(type(tmp_2.iloc[0,0]))
 
 
 st.set_page_config(layout="wide", page_title="Seeclub Luzern Logbuch", page_icon=":boat:")
-st.title("Seeclub Luzern Logbuch") # Title of the app
+st.header("Seeclub Luzern Logbuch") # Title of the app
 
 # Perform query.
 # Uses st.cache_data to only rerun when the query changes or after 10 min.
@@ -121,35 +121,37 @@ def map(data, lat, lon, zoom):
 #df = run_query_df("select * from `iot_dataset.gps_rides` where date_value = '2023-05-02' order by time_value")
 #print(df.head())
 
-
-def get_ride_member():
-    tmp_2 = df_rides.loc[df_rides['member_name_']=='Shanshan', ['ride_date']].sort_values(by='ride_date', ascending=False)
-    print(tmp_2.iloc[0,0])
-    print(type(tmp_2.iloc[0,0]))
+# Return the dataframe of the previous ride of a specific member
+def get_ride_member(member):
+    df_tmp = df_rides.loc[df_rides['member_name_']==member, ['ride_date']].sort_values(by='ride_date', ascending=False)
+    #print(df_tmp.iloc[0,0])
+    #print(type(df_tmp.iloc[0,0]))
     #ride_date = datetime.date(df_rides.loc[df_rides.member_name_=='Shanshan', 'ride_date'].sort_values(ascending=False).head(1))
     #print(ride_date)
-    return df_gps_rides[df_gps_rides.date_value==tmp_2.iloc[0,0]].sort_values(by='time_value')
+    return df_gps_rides[df_gps_rides.date_value==df_tmp.iloc[0,0]].sort_values(by='time_value')
     #return df_gps_rides[df_gps_rides.date_value==datetime.date(2023, 5, 28)].sort_values(by='time_value')
- 
-def get_map_ride(df):
+
+# Return the list of geo coordinates 
+def helper_map(df): 
     #print(df.head())
     df_list = []
     for index, row in df.iterrows():
         df_list.append([row["lon"], row["lat"]])
+        
+    return df_list
 
+# Return the dataframe of geo coordinates which can be used by pathline
+def get_map_ride(df_list):
     df_new = pd.DataFrame(columns=['path'])
     df_new.at['0', 'path'] = df_list  
     #print(df_new.head())
     return df_new
 
 
-def cal_distance(df):
-    df_list = []
-    for index, row in df.iterrows():
-        df_list.append([row["lon"], row["lat"]])
-    
+def cal_distance(df_list):    
     coor_length = len(df_list)
-    coor_list = df_new.iloc[0]['path']
+    #coor_list = df_new.iloc[0]['path']
+    coor_list = df_list
 
     coor_distance = 0.0
     i = 0
@@ -163,7 +165,7 @@ def cal_distance(df):
         j += 1
 
     coor_distance = round(coor_distance, 2)
-    print(coor_distance)
+    #print(coor_distance)
     return coor_distance
 
 
@@ -177,7 +179,7 @@ def cal_distance(df):
 tab1, tab2, tab3 = st.tabs(["Live view", "Member view", "Boat view"])
 
 with tab1:
-   st.header("Member view")
+   #st.header("Member view")
    row1_1, row1_2 = st.columns((3, 1)) # Size of columns 2, 1, 1, 1 
     
    with row1_1:
@@ -195,20 +197,23 @@ with tab1:
     #    st.write(df_query[column])
    
    if member:
+        df_ride_member = get_ride_member(member)
+        df_list_map = helper_map(df_ride_member)
+        
         with row2_1:
-                #st.write("Previous rowing of ", member)
-                df_ride_member = get_ride_member()
                 #print(df_ride_member.head())
                 midpoint = mpoint(df_ride_member["lat"], df_ride_member["lon"])
-                df_new = get_map_ride(df_ride_member)
+                df_map = get_map_ride(df_list_map)
                 #print(df_new.head())
-                map(df_new, midpoint[0], midpoint[1], 12)
-                coor_distance = cal_distance(df_ride_member)
+                map_zoom = 12
+                map(df_map, midpoint[0], midpoint[1], map_zoom)
+
 
                     
         with row2_2:
                 col1, col2 = st.columns([1, 4])
-                col2.metric(label="Temperature", value="70 °F")
+                coor_distance = cal_distance(df_list_map)
+                col2.metric(label="Distance", value=coor_distance)
                 col2.metric(label="Temperature", value="70 °F")
                 col2.metric(label="Temperature", value="70 °F")
                 col2.metric(label="Temperature", value="70 °F")
