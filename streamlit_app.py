@@ -5,6 +5,7 @@ import numpy as np
 import pydeck as pdk
 import pandas as pd
 import datetime
+from datetime import time
 import geopy.distance
 from google.oauth2 import service_account
 from google.cloud import bigquery
@@ -97,14 +98,15 @@ def map(data, lat, lon, zoom):
                 "zoom": zoom,
                 "pitch": 50,
             },
+            tooltip={"text": "{boat}"},
             layers=[
                 pdk.Layer(
                     type="PathLayer",
                     pickable=True,
                     data = data,
-                    get_color=[255, 0, 0],
+                    get_color="colour",
                     width_scale=5,
-                    width_min_pixels=2,
+                    width_min_pixels=3,
                     get_path="path",
                     get_width=5,
                 ),
@@ -125,14 +127,22 @@ def get_ride_member(member):
     df_tmp = df_rides.loc[df_rides['member_name_']==member, ['ride_date']].sort_values(by='ride_date', ascending=False)
     return df_gps_rides[df_gps_rides.date_value==df_tmp.iloc[0,0]].sort_values(by='time_value')
 
-def get_ride_role_member(member):
-    df_tmp = df_rides.loc[df_rides['member_name_']==member, ['seat_number']].sort_values(by='ride_date', ascending=False)
-    return df_tmp.iloc[0,0]
-
 # Return the dataframe of all ride dates of a specific member
 def get_ride_dates_member(member):
     df_ride_dates = df_rides.loc[df_rides['member_name_']==member, ['ride_date']].sort_values(by='ride_date', ascending=False)
     return df_ride_dates
+
+# Return the dataframe of the previous ride of a specific member
+def get_ride_boat(boat):
+    df_tmp = df_rides.loc[df_rides['boat_name_']==boat, ['ride_date']].sort_values(by='ride_date', ascending=False)
+    return df_gps_rides[df_gps_rides.date_value==df_tmp.iloc[0,0]].sort_values(by='time_value')
+
+# Return the dataframe of all ride dates of a specific member
+def get_ride_dates_boat(boat):
+    tmp_dates = df_rides.loc[df_rides['boat_name_']==boat, ['ride_date']]['ride_date'].unique()
+    df_ride_dates = pd.DataFrame(tmp_dates, columns = ['ride_date']).sort_values(by='ride_date', ascending=False)
+    return df_ride_dates
+
 
 # Return the dataframe of the ride of a specific date
 def get_ride_date(date):
@@ -150,9 +160,14 @@ def helper_map(df):
 
 # Return the dataframe of geo coordinates which can be used by pathline
 def get_map_ride(df_list):
-    df_new = pd.DataFrame(columns=['path'])
-    df_new.at['0', 'path'] = df_list  
+    #df_new = pd.DataFrame(columns=['path'])
+    #df_new.at['0', 'path'] = df_list  
     #print(df_new.head())
+    df_new = pd.DataFrame(columns=['path', 'colour', 'boat'])
+    df_new.at['0', 'path'] = df_list
+    df_new.at['0', 'colour'] = [255, 0, 0]
+    df_new.at['0', 'boat'] = ''
+    
     return df_new
 
 
@@ -186,8 +201,38 @@ def cal_distance(df_list):
 
 tab1, tab2, tab3 = st.tabs(["Live view", "Member view", "Boat view"])
 
+
 with tab1:
-   #st.header("Member view")
+    
+    df_ride_1 = get_ride_date(datetime.date(2023, 5, 28))
+    df_ride_2 = get_ride_date(datetime.date(2023, 5, 7))
+    df_ride_3 = get_ride_date(datetime.date(2023, 5, 2))
+    
+    list_map_1 = helper_map(df_ride_1.iloc[0:200])
+    list_map_2 = helper_map(df_ride_2.iloc[0:120])
+    list_map_3 = helper_map(df_ride_3.iloc[0:570])
+    
+    df_new = pd.DataFrame(columns=['path', 'colour', 'boat'])
+    df_new.at['0', 'path'] = list_map_1
+    df_new.at['0', 'colour'] = [255, 0, 0]
+    df_new.at['0', 'boat'] = 'Wernli'
+    
+    df_new.at['1', 'path'] = list_map_2
+    df_new.at['1', 'colour'] = [0, 255, 0]
+    df_new.at['1', 'boat'] = 'Happy end'
+    
+    df_new.at['2', 'path'] = list_map_3
+    df_new.at['2', 'colour'] = [0, 0, 255]
+    df_new.at['2', 'boat'] = 'Take five'    
+
+    midpoint = mpoint(df_gps_rides["lat"], df_ride_1["lon"])
+    
+    map_zoom = 13
+    map(df_new, midpoint[0], midpoint[1], map_zoom)
+   
+   
+with tab2:
+
    row1_1, row1_2 = st.columns((3, 1)) # Size of columns 2, 1, 1, 1 
     
    with row1_1:
@@ -197,12 +242,6 @@ with tab1:
    # LAYING OUT THE MIDDLE SECTION OF THE APP WITH THE MAPS
    row2_1, row2_2 = st.columns((3, 1)) # Size of columns 2, 1, 1, 1 
 
-
-    #df_query = run_query_df("select cast(a as FLOAT64) as lat, cast(b as FLOAT64) as lon, extract(time from TIMESTAMP_SECONDS(cast(c as INT64))) as time_value from `iot_dataset.07_05`")
-    #midpoint = mpoint(df["lat"], df["lon"]) # the map will be centered on the midpoint of all the data points
-    #map(df, midpoint[0], midpoint[1], 11)
-    #for column in df_query:
-    #    st.write(df_query[column])
    
    if member:
         df_ride_member = get_ride_member(member)
@@ -233,31 +272,69 @@ with tab1:
                 #print(df_new.head())
                 map_zoom = 12.4
                 map(df_map, midpoint[0], midpoint[1], map_zoom)
-
-
-                    
+                              
         with row2_2:
                 col1, col2 = st.columns([1, 4])
                 coor_distance = cal_distance(df_list_map)
                 coor_distance = round(coor_distance, 2)
-                #seat_number = get_ride_role_member(member)
-                #ride_date = df_dates.iloc[0,0]
                 col2.metric(label="Previous rowing distance ", value=str(coor_distance)+" km")
-                #col2.metric(label="Previous rowing role ", value="seat_number")
                 col2.metric(label="Previous rowing date ", value=str(df_dates.iloc[0,0]))
                 col2.divider()
                 col2.metric(label="Total rowing distance ", value=str(total_coor_distance)+" km")
                 col2.metric(label="Number of rowings ", value=nr_rides)
                 col2.metric(label="Average rowing distance ", value=str(round(total_coor_distance/nr_rides, 2))+" km")
 
-
-
-with tab2:
-   st.header("A dog")
-   st.image("https://static.streamlit.io/examples/dog.jpg", width=200)
-
 with tab3:
-   st.header("An owl")
-   st.image("https://static.streamlit.io/examples/owl.jpg", width=200)
+
+   row1_1, row1_2 = st.columns((3, 1)) # Size of columns 2, 1, 1, 1 
+    
+   with row1_1:
+        boat = st.text_input('Enter the name of the boat :hugging_face:')
+   
+   
+   # LAYING OUT THE MIDDLE SECTION OF THE APP WITH THE MAPS
+   row2_1, row2_2 = st.columns((3, 1)) # Size of columns 2, 1, 1, 1 
+
+   
+   if boat:
+        df_ride_boat = get_ride_boat(boat)
+        df_list_map = helper_map(df_ride_boat)
+        
+        df_dates = get_ride_dates_boat(boat)
+        nr_rides = len(df_dates)
+      
+        i = 0
+        total_coor_distance = 0
+        while (i<nr_rides):
+            print(df_dates.iloc[i,0])
+            df_ride_date = get_ride_date(df_dates.iloc[i,0])
+          
+            print(df_ride_date.head())
+            df_list_ride_date = helper_map(df_ride_date)
+            
+            total_coor_distance += cal_distance(df_list_ride_date)
+            print(total_coor_distance)
+            i += 1
+        
+        total_coor_distance = round(total_coor_distance, 2)
+        
+        with row2_1:
+                #print(df_ride_member.head())
+                midpoint = mpoint(df_ride_boat["lat"], df_ride_boat["lon"])
+                df_map = get_map_ride(df_list_map)
+                #print(df_new.head())
+                map_zoom = 12.4
+                map(df_map, midpoint[0], midpoint[1], map_zoom)
+                              
+        with row2_2:
+                col1, col2 = st.columns([1, 4])
+                coor_distance = cal_distance(df_list_map)
+                coor_distance = round(coor_distance, 2)
+                col2.metric(label="Previous rowing distance ", value=str(coor_distance)+" km")
+                col2.metric(label="Previous rowing date ", value=str(df_dates.iloc[0,0]))
+                col2.divider()
+                col2.metric(label="Total rowing distance ", value=str(total_coor_distance)+" km")
+                col2.metric(label="Number of rowings ", value=nr_rides)
+                col2.metric(label="Average rowing distance ", value=str(round(total_coor_distance/nr_rides, 2))+" km")
 
 
