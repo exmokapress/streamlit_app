@@ -199,39 +199,9 @@ def cal_distance(df_list):
 #df_date = run_query_df("select ride_date from `iot_dataset.rides` where member_name_ = 'Shanshan' order by ride_date limit 1")
 #ride_date = df_date.iloc[0,0]
 
-tab1, tab2, tab3 = st.tabs(["Live view", "Member view", "Boat view"])
-
+tab1, tab2, tab3 = st.tabs(["Member view", "Boat view", "Live view"])
 
 with tab1:
-    
-    df_ride_1 = get_ride_date(datetime.date(2023, 5, 28))
-    df_ride_2 = get_ride_date(datetime.date(2023, 5, 7))
-    df_ride_3 = get_ride_date(datetime.date(2023, 5, 2))
-    
-    list_map_1 = helper_map(df_ride_1.iloc[0:200])
-    list_map_2 = helper_map(df_ride_2.iloc[0:120])
-    list_map_3 = helper_map(df_ride_3.iloc[0:570])
-    
-    df_new = pd.DataFrame(columns=['path', 'colour', 'boat'])
-    df_new.at['0', 'path'] = list_map_1
-    df_new.at['0', 'colour'] = [255, 0, 0]
-    df_new.at['0', 'boat'] = 'Wernli'
-    
-    df_new.at['1', 'path'] = list_map_2
-    df_new.at['1', 'colour'] = [0, 255, 0]
-    df_new.at['1', 'boat'] = 'Happy end'
-    
-    df_new.at['2', 'path'] = list_map_3
-    df_new.at['2', 'colour'] = [0, 0, 255]
-    df_new.at['2', 'boat'] = 'Take five'    
-
-    midpoint = mpoint(df_gps_rides["lat"], df_ride_1["lon"])
-    
-    map_zoom = 13
-    map(df_new, midpoint[0], midpoint[1], map_zoom)
-   
-   
-with tab2:
 
    row1_1, row1_2 = st.columns((3, 1)) # Size of columns 2, 1, 1, 1 
     
@@ -284,7 +254,7 @@ with tab2:
                 col2.metric(label="Number of rowings ", value=nr_rides)
                 col2.metric(label="Average rowing distance ", value=str(round(total_coor_distance/nr_rides, 2))+" km")
 
-with tab3:
+with tab2:
 
    row1_1, row1_2 = st.columns((3, 1)) # Size of columns 2, 1, 1, 1 
     
@@ -336,5 +306,36 @@ with tab3:
                 col2.metric(label="Total rowing distance ", value=str(total_coor_distance)+" km")
                 col2.metric(label="Number of rowings ", value=nr_rides)
                 col2.metric(label="Average rowing distance ", value=str(round(total_coor_distance/nr_rides, 2))+" km")
+
+with tab3:
+    
+    df_ride_1 = get_ride_date(datetime.date(2023, 5, 28))
+    df_ride_2 = get_ride_date(datetime.date(2023, 5, 7))
+    df_ride_3 = get_ride_date(datetime.date(2023, 5, 2))
+    
+    list_map_1 = helper_map(df_ride_1.iloc[0:200])
+    list_map_2 = helper_map(df_ride_2.iloc[0:120])
+    list_map_3 = helper_map(df_ride_3.iloc[0:570])
+    
+    df_new = pd.DataFrame(columns=['path', 'colour', 'boat'])
+    df_new.at['0', 'path'] = list_map_1
+    df_new.at['0', 'colour'] = [255, 0, 0]
+    df_new.at['0', 'boat'] = 'Wernli'
+    
+    df_new.at['1', 'path'] = list_map_2
+    df_new.at['1', 'colour'] = [0, 255, 0]
+    df_new.at['1', 'boat'] = 'Happy end'
+    
+    df_new.at['2', 'path'] = list_map_3
+    df_new.at['2', 'colour'] = [0, 0, 255]
+    df_new.at['2', 'boat'] = 'Take five'    
+
+    midpoint = mpoint(df_gps_rides["lat"], df_ride_1["lon"])
+    
+    map_zoom = 13
+    map(df_new, midpoint[0], midpoint[1], map_zoom)
+   
+   
+
 
 
