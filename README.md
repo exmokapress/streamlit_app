@@ -4,7 +4,7 @@ In this repo you will find the source code of the streamlit app, big queries of 
 
 To launch the app simply click this url link of the streamlit app https://exmokapress-streamlit-app-streamlit-app-0y4qi2.streamlit.app/
 
-You can look up members and boats based on the table xx. 
+You can look up members and boats based on the table rides.csv. 
 
 In addition you will find a video recording which demonstrates the streamlit app and  
 
