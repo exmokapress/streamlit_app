@@ -6,5 +6,6 @@ To launch the app simply click this url link of the streamlit app https://exmoka
 
 You can look up members and boats based on the table xx. 
 
-In addition you will find a video recording and an article which demonstrates the streamlit app and wraps up a couple of technical thoughts on this project. 
+In addition you will find a video recording which demonstrates the streamlit app and  
 
+In addition you will also find an article where I wraps up a couple of technical thoughts on this project. I would not publish it on my LinkedIn account, instead I wrote it to fullfill the project requirements.    
